@@ -46,7 +46,9 @@ setup(
     extras_require={
         'testing': tests_require,
     },
+    setup_requires=['pytest-runner'], # make pytest default test runner
     install_requires=requires,
+    tests_require=tests_require,
     entry_points={
         'paste.app_factory': [
             'main = {{ cookiecutter.repo_name }}:main',
