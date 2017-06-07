@@ -31,3 +31,9 @@ Getting Started
 - Run your project.
 
     env/bin/pserve development.ini
+
+- Deploy your project with zappa!
+
+    . env/bin/activate.fish # or whatever shell you use
+    zappa init
+    zappa deploy

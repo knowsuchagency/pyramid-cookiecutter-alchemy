@@ -7,7 +7,6 @@ from sqlalchemy import engine_from_config
 from sqlalchemy.orm import configure_mappers
 from sqlalchemy.orm import sessionmaker
 
-import pkg_resources
 import transaction
 import zope.sqlalchemy
 
@@ -19,11 +18,7 @@ from .mymodel import MyModel  # noqa
 # all relationships can be setup
 configure_mappers()
 
-DEVELOPMENT_CONFIG_URI = pkg_resources. \
-    get_distribution('{{ cookiecutter.repo_name }}').get_resource_filename(
-    pkg_resources.ResourceManager(),
-    'development.ini'
-)
+DEVELOPMENT_CONFIG_URI = Path(__file__).parent.parent.parent.joinpath('development.ini')
 
 
 @contextmanager
@@ -48,7 +43,15 @@ def dbsession(arg):
 
 
 @dbsession.register(dict)
-def _(settings):
+def _(settings, **kwargs):
+    """
+    Yield a sqlalchemy session.
+
+    :param settings: dict
+    :param kwargs: dict (updates settings)
+    """
+    settings = settings.copy()
+    settings.update(kwargs)
     engine = get_engine(settings)
     session_factory = get_session_factory(engine)
     with transaction.manager:
@@ -56,8 +59,9 @@ def _(settings):
         yield session
 
 
+@dbsession.register(Path)
 @dbsession.register(str)
-def _(config_uri):
+def _(config_uri, **kwargs):
     """
     Given a path to a configuration file, yield a dbsession.
 
@@ -68,9 +72,12 @@ def _(config_uri):
     config_uri = '/path/to/{{ cookiecutter.repo_name }}/development.ini'
     with models.dbsession(config_uri) as session:
         ... do stuff
+        
+    Any keyword arguments will be added to the settings
+    dictionary created from the configurations uri
     """
     path = Path(config_uri)
-    settings = get_appsettings(str(path.absolute()))
+    settings = get_appsettings(str(path.absolute()), options=kwargs)
     with dbsession(settings) as session:
         yield session
 

@@ -18,7 +18,10 @@ requires = [
     'zope.sqlalchemy',
     'elizabeth',
     'waitress',
-    'pytest',
+    'webob-graphql>=1.0.dev',
+    'graphene-sqlalchemy>=1.0',
+    'attrs',
+    'zappa',
 ]
 
 tests_require = [
