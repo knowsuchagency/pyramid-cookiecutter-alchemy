@@ -1,0 +1,10 @@
+{
+    "dev": {
+        "app_function": "{{cookiecutter.repo_name}}.zappa_dev",
+        "aws_region": "us-west-2",
+        "profile_name": "default",
+        "s3_bucket": "{{cookiecutter.repo_name}}",
+        "keep_warm": false,
+        "remote_env": "s3://generic-credentials/credentials.json"
+    }
+}

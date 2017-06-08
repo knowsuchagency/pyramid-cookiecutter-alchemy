@@ -1,7 +1,7 @@
 from pyramid.config import Configurator
 from configparser import ConfigParser
 from functools import partial
-from pathlib import Path
+import os
 
 
 def main(global_config, **settings):
@@ -18,12 +18,15 @@ def main(global_config, **settings):
 def zappa(config_uri, event, context, **vars):
     """
     Uses the settings in the configuration uri to bootstrap a wsgi application
-    through our pyramid application. Zappa then uses that wsgi application
-    to create a handler function for use with aws lambda. Event and context
-    information are passed through aws to the handler function and it takes that
-    information along with our wsgi application to return a response.
-    
-    :param config_uri: str
+    through our pyramid application. 
+
+    Zappa then uses that wsgi application
+    to create a handler function for use with aws lambda. 
+
+    Event and context information are passed to the handler function which uses
+    our wsgi application to return a response.
+
+    :param config_uri: string pointing to paste deploy config file
     :param event: aws event
     :param context: aws context
     :param vars: parameters that will be passed to the configuration file
@@ -37,5 +40,14 @@ def zappa(config_uri, event, context, **vars):
     return wsgi_app(event, context)
 
 
-zappa_dev = partial(zappa, 'development.ini', here=str(Path(__file__).parent))
-zappa_prod = partial(zappa, 'production.ini')
+zappa_dev = partial(zappa,
+                    'development.ini',
+                    dbusername=os.environ.get('dbusername'),
+                    dbpassword=os.environ.get('dbpassword')
+                    )
+
+zappa_prod = partial(zappa,
+                     'production.ini',
+                     dbusername=os.environ.get('dbusername'),
+                     dbpassword=os.environ.get('dbpassword')
+                     )

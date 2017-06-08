@@ -21,6 +21,7 @@ requires = [
     'webob-graphql>=1.0.dev',
     'graphene-sqlalchemy>=1.0',
     'attrs',
+    'psycopg2',
     'zappa',
 ]
 
@@ -60,6 +61,7 @@ setup(
         ],
         'console_scripts': [
             'initialize_{{ cookiecutter.repo_name }}_db = {{ cookiecutter.repo_name }}.scripts.initializedb:main',
+            'drop_{{ cookiecutter.repo_name }}_db = {{ cookiecutter.repo_name }}.scripts.dropdb:main',
         ],
     },
 )

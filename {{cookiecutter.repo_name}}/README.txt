@@ -34,6 +34,4 @@ Getting Started
 
 - Deploy your project with zappa!
 
-    . env/bin/activate.fish # or whatever shell you use
-    zappa init
     zappa deploy
