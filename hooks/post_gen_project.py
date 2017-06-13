@@ -1,6 +1,9 @@
+from pprint import pprint
+from uuid import uuid4
 import os
 import subprocess
 import sys
+import re
 
 from textwrap import dedent
 
@@ -55,3 +58,25 @@ msg = dedent(
         %(pserve_cmd)s development.ini
     """ % vars)
 print(msg)
+
+def updated_zappa_settings(string):
+    """
+    Update the zappa settings file to create a unique
+    uuid's where necessary.
+    """
+    # create a uuid to append to the project name
+    uuid = re.match(r'(\w+)-', str(uuid4())).group(1)
+
+    # the pattern we use to find the s3_bucket line
+    pattern = re.compile(r'\"s3_bucket\"\:\s\"(\w+)(?!-)(?:\")')
+
+    replace = lambda m: m.group(0)[:-1] + '-' + uuid + '"'
+    return re.sub(pattern, replace, string)
+
+with open('zappa_settings.json', 'r+') as settings:
+    original_settings = settings.read()
+    new_settings = updated_zappa_settings(original_settings)
+    if new_settings:
+        settings.seek(0)
+        settings.write(new_settings)
+

@@ -18,7 +18,7 @@ def main(global_config, **settings):
 def zappa(config_uri, event, context, **vars):
     """
     Uses the settings in the configuration uri to bootstrap a wsgi application
-    through our pyramid application. 
+    through pyramid. 
 
     Zappa then uses that wsgi application
     to create a handler function for use with aws lambda. 
