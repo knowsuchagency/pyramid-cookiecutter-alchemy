@@ -24,6 +24,7 @@ requires = [
     'psycopg2',
     'zappa',
     'pytest',
+    'pypugjs',
 ]
 
 tests_require = [
