@@ -40,11 +40,7 @@ def zappa(config_uri, event, context, **vars):
     return wsgi_app(event, context)
 
 
-zappa_dev = partial(zappa,
-                    'development.ini',
-                    dbusername=os.environ.get('dbusername'),
-                    dbpassword=os.environ.get('dbpassword')
-                    )
+zappa_dev = partial(zappa, 'development.ini')
 
 zappa_prod = partial(zappa,
                      'production.ini',
