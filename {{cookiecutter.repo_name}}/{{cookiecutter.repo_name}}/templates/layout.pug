@@ -29,7 +29,7 @@ html(lang= "#{ request.locale_name }")
         .starter-template
             .container
                 .row
-                    .col-md-2
+                    .col-md-2: a(href="#{ request.route_url('home') }")
                         img(class="logo img-responsive", src="#{ request.static_url('{{ cookiecutter.repo_name }}:static/pyramid.png')}", alt="pyramid web framework")
                     .col-md-10
                         block content
