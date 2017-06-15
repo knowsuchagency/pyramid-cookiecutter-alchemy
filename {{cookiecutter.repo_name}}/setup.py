@@ -23,6 +23,7 @@ requires = [
     'attrs',
     'psycopg2',
     'zappa',
+    'pytest',
 ]
 
 tests_require = [

@@ -1,65 +1,71 @@
-import unittest
-import transaction
-
 from pyramid import testing
+
+import transaction
+import pytest
 
 
 def dummy_request(dbsession):
     return testing.DummyRequest(dbsession=dbsession)
 
 
-class BaseTest(unittest.TestCase):
-    def setUp(self):
-        self.config = testing.setUp(settings={
-            'sqlalchemy.url': 'sqlite:///:memory:'
-        })
-        self.config.include('.models')
-        settings = self.config.get_settings()
-
-        from .models import (
-            get_engine,
-            get_session_factory,
-            get_tm_session,
-            )
-
-        self.engine = get_engine(settings)
-        session_factory = get_session_factory(self.engine)
-
-        self.session = get_tm_session(session_factory, transaction.manager)
-
-    def init_database(self):
-        from .models.meta import Base
-        Base.metadata.create_all(self.engine)
-
-    def tearDown(self):
-        from .models.meta import Base
-
-        testing.tearDown()
-        transaction.abort()
-        Base.metadata.drop_all(self.engine)
+@pytest.fixture()
+def config():
+    with testing.testConfig(settings={'sqlalchemy.url': 'sqlite:///:memory:'}) as cfg:
+        cfg.include('{{ cookiecutter.project_name }}.models')
+        yield cfg
 
 
-class TestMyViewSuccessCondition(BaseTest):
-
-    def setUp(self):
-        super(TestMyViewSuccessCondition, self).setUp()
-        self.init_database()
-
-        from .models import MyModel
-
-        model = MyModel(name='one', value=55)
-        self.session.add(model)
-
-    def test_passing_view(self):
-        from .views.default import my_view
-        info = my_view(dummy_request(self.session))
-        self.assertEqual(info['one'].name, 'one')
-        self.assertEqual(info['project'], '{{ cookiecutter.project_name }}')
+@pytest.fixture()
+def settings(config):
+    return config.get_settings()
 
 
-class TestMyViewFailureCondition(BaseTest):
+@pytest.fixture()
+def engine(settings):
+    from .models import get_engine
+    return get_engine(settings)
 
-    def test_failing_view(self):
-        from .views.default import my_view
-        info = my_view(dummy_request(self.session))
-        self.assertEqual(info.status_int, 500)
+
+@pytest.fixture()
+def session(engine):
+    from .models import get_session_factory, get_tm_session
+    session_factory = get_session_factory(engine)
+
+    return get_tm_session(session_factory, transaction.manager)
+
+
+@pytest.fixture()
+def request(session, engine):
+    """
+    Use this fixture when you need a request object where the
+    database has been initialized.
+    """
+    from .models.meta import Base
+    Base.metadata.create_all(engine)
+
+    yield testing.DummyRequest(dbsession=session)
+
+    testing.tearDown()
+    transaction.abort()
+    Base.metadata.drop_all(engine)
+
+
+def test_passing_home_view(request):
+    from .models import MyModel
+
+    model = MyModel(name='one', value=55)
+    request.dbsession.add(model)
+
+    from .views.default import home
+    info = home(request)
+    assert info['one'].name == 'one'
+    assert info['project'] == '{{ cookiecutter.project_name }}'
+
+
+def test_failing_home_view(session):
+    """
+    This should fail because the database will not have been initialized.
+    """
+    from .views.default import home
+    info = home(dummy_request(session))
+    assert info.status_int == 500
